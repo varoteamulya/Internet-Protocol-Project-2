@@ -1,262 +1,250 @@
+import java.net.*;
+import java.nio.channels.AcceptPendingException;
+import java.nio.file.FileSystem;
+import java.util.Arrays;
+import java.io.*;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- *
- * @author Mahek Chheda
- */
 public class selective_repeat_client {
-    String hostname="127.0.0.1";
-    int n,mss,seq;
-    static int strt=0,end=0,port;
-    static DatagramSocket clientsocket;
-    File name;
-    byte [][] fs;
-    static InetAddress ip;
-    boolean done=false;
-    packets p[];
-    boolean ack[];
-    long rtt=0;
-    selective_repeat_client(String host,int a,String f,int b,int c)
-    {
-        hostname=host;
-        port=a;
-        n=b;
-        //buffer=n;
-        mss=c;
-        try
-        {
-            clientsocket=new DatagramSocket();
-            name=new File(f);
-            ip=InetAddress.getByName(hostname);
-        }
-        catch(SocketException s)
-        {
-            System.err.println(s);
-        }
-        catch(UnknownHostException h)
-        {
-            System.err.println(h);
-        }
-    }
-    public static void main(String args[])
-    {
-//        String arg[]=new String [5];
-//        arg[0]="127.0.0.1";
-//        arg[1]="10000";
-//        arg[2]="11.txt";
-//        arg[3]="1";
-//        arg[4]="500";
-        selective_repeat_client arc=new selective_repeat_client(args[0],Integer.parseInt(args[1]),args[2],Integer.parseInt(args[3]),Integer.parseInt(args[4]));
-        System.out.println("Preparing file for transfer");
-        arc.filesplit();
-        System.out.println("Sending File...Please wait");
-        arc.execute();
-       
-        System.out.println("Time taken="+arc.rtt);
-        System.out.println("File Transfer Complete!!");
-    }
-    void filesplit()
-    {
-        int i=(int)name.length()/mss;
-        int j;
-        System.out.println("File Size::"+name.length()+"bytes");
-        fs=new byte[i+1][mss];
-        p=new packets[i+1];
-        ack=new boolean[i+1];
-        try
-        {
-            byte [] bytearray  = new byte [(int)name.length()];
-            FileInputStream fin = new FileInputStream(name);
-            BufferedInputStream bin = new BufferedInputStream(fin);
-            bin.read(bytearray,0,bytearray.length);
-            for(j=0;j<bytearray.length;j++)
-            {
-              fs[j/mss][j%mss]=bytearray[j];
-              //System.out.println(j);
-            }
-            i=j/mss;
-            while(j%mss!=0)
-            {
-                j++;
-                fs[i][j%mss]=0;
-                //System.out.println(j);
-            }
-            j=0;
-        }
-        catch(FileNotFoundException e)
-        {
-            System.err.println();
-        }
-        catch(IOException er)
-        {
-            System.err.println(er);
-        }
-    }
-    void execute()
-    {
-        long strt=System.currentTimeMillis();
-        send();
-        one:while((selective_repeat_client.strt*mss)<(int)name.length())
-        {
-            send();
-            byte [] receivedata=new byte[1024];
-            DatagramPacket receive=new DatagramPacket(receivedata,receivedata.length);
-            try
-            {
-                clientsocket.setSoTimeout(1000);
-                selective_repeat_client.clientsocket.receive(receive);
-                String unpack=new String(receive.getData());
-                if(unpack.substring(48,64).equals("1010101010101010"))
-                {
-                    String seqtemp=unpack.substring(0,32);
-                    int seqn=bintodeci(seqtemp);
-                    ack[seqn]=true;
-                    window();
-                    p[seqn].stop();
-                }
-            }
-            catch(IOException ioe)
-            {
-                // System.err.println(ioe);
-                 continue one;
-            }
-         }
-        long end=System.currentTimeMillis();
-        rtt=end-strt;
-        endfile();
-    }
-    void send()
-    {
-     //  System.out.println("current available buffer="+(arq_client.end-arq_client.strt));
-       while(((selective_repeat_client.end-selective_repeat_client.strt)<n&&fs.length>selective_repeat_client.end))
-       {
-           p[end]=new packets(end,checksum(fs[end]),fs[end]);
-           ack[end]=false;
-           p[selective_repeat_client.end].start();
-           selective_repeat_client.end++;
-        }  
-    }
-    void endfile()
-    {
-        try
-        {
-           String temp=Integer.toBinaryString(selective_repeat_client.strt+1);
-            for(int i=temp.length();i<32;i++)
-                temp="0"+temp;
-            byte emp[]=new byte[mss];
-            String check=checksum(emp);
-            String eof=temp+check+"0000000000000000"+(new String(emp));
-            byte b[]=eof.getBytes();
-            DatagramPacket p=new DatagramPacket(b,b.length,selective_repeat_client.ip,10000);
-            clientsocket.send(p);
-            //System.out.println("EOF sent");
-        }
-        catch(IOException ioe){
-            System.err.print(ioe);
-        }
-    }
-    String checksum(byte [] b)
-    {
-       byte sum1=0,sum2=0;
-       for(int i=0;i<b.length;i=i+2)
-       {
-           sum1+=b[i];
-           if((i+1)<b.length)
-                sum2+=b[i+1];
-       }
-       String res=Byte.toString(sum1),res1=Byte.toString(sum2);
-       for(int i=res.length();i<8;i++)
-           res="0"+res;
-       for(int i=res1.length();i<8;i++)
-           res1="0"+res1;
-       return res+res1;
-    }
-    int bintodeci(String str){
-    double j=0;
-    for(int i=0;i<str.length();i++){
-        if(str.charAt(i)== '1'){
-         j=j+ Math.pow(2,str.length()-1-i);
-     }
+  String host = "127.0.0.1";
+  int port, n,mss,windowSize;
+  static int startTime = 0;
+  static int endTime = 0;
+  static File file;
+  static byte [][] filesystem;
+  static DatagramSocket clientSocket;
+  long roundTripTime = 0;
+  int count = 0;
+  int buffersize = 0 ;
+  static InetAddress ip;
+  static packet pack[];
+  static boolean [] acknowledge;
+  long delay = 0;
+  
+  
+  public selective_repeat_client(String host,int port,String filename,int winSize,int mss) {
+	  this.host = host;
+	  this.port = port;
+	  this.file = new File(filename);
+	  this.windowSize = winSize;
+	  this.mss = mss;
+	  try {
+		this.ip = InetAddress.getByName(host);
+	   } catch (UnknownHostException e1) {
+			e1.printStackTrace();
+	   }
+	  try {
+		this.clientSocket =  new DatagramSocket();
+		
+	  } catch (SocketException e) {
+		e.printStackTrace();
+	  }	  
+  }
+  
+  public static void main(String[] args) throws IOException {
+	  //Storing the command line inputs in the variables
+	  String serverhostname = args[0];
+	  int portNo = Integer.parseInt(args[1]);
+	  String filename = args[2];
+	  int windowSize = Integer.parseInt(args[3]);
+	  int mss = Integer.parseInt(args[4]);
+	  selective_repeat_client ftpClient = new selective_repeat_client(serverhostname,portNo,filename,windowSize,mss);
+	  
+	  System.out.println("The file is getting transferred");
+	  //formatting the file in the required manner
+	  int num = (int) (file.length()/mss);
+	  int i;
+	  filesystem = new byte[num + 1][mss];
+	  pack = new packet[num + 1];
+	  acknowledge = new boolean[num + 1];
+	  byte [] bytedata = new byte[(int)file.length()];
+	  FileInputStream fstream;
+	try {
+		fstream = new FileInputStream(file);
+		BufferedInputStream bstream = new BufferedInputStream(fstream);
+		bstream.read(bytedata,0,bytedata.length);
+	} catch (FileNotFoundException e) {
+		e.printStackTrace();
+	}
+	for(i = 0; i < bytedata.length ; i++) {
+		  filesystem[i/mss][i%mss] = bytedata[i]; 
+	}
+	num = i/mss;
+	while(i%mss != 0) {
+		  i++;
+		  filesystem[num][i%mss] = 0;
+	}
+	i=0;
+	
+	System.out.println("The packet is being sent");
+	ftpClient.performOperation();
+	System.out.println("Time taken" + ftpClient.roundTripTime);
+	System.out.println("The file is transferred");
+	  
+  }
+  
+   void performOperation() throws IOException {
+	  //considering the start time of the system.
+	  long startTime = System.currentTimeMillis();
+	  System.out.println("The start time is "+startTime);
+	  System.out.println("count:" + count);
+	  System.out.println("mss:" + mss);
+	  System.out.println("file:" + (int)file.length());
+	  System.out.println("Buffer:" + buffersize);
+	  System.out.println("window:" + windowSize);
+	  send();
+	  System.out.println("hii1");
+	  
+	  continueLoop:while((selective_repeat_client.startTime*mss) < (int)file.length()) {
+		      System.out.println("hii2");
+		      send();
+		      System.out.println("hii3");
+			  byte[] receivedData = new byte[1024];
+			  DatagramPacket receivePacket = new DatagramPacket(receivedData, receivedData.length);
+			  try {
+				      clientSocket.setSoTimeout(1000);
+					  selective_repeat_client.clientSocket.receive(receivePacket);
+					  System.out.println("hii4");
+					  String data = new String(receivePacket.getData());
+					  System.out.println("hii5");
+					  if(data.substring(48, 64).equals("1010101010101010")) {
+							  System.out.println("The packet received is acknowledgement packet");
+							  String acknowledgementNo = data.substring(0,32);
+							  int ackNo = binaryToDecimal(acknowledgementNo);
+							  acknowledge[ackNo] = true;
+							  slide();
+		                       pack[ackNo].stop();
+				      }
+			  
+		       }
+		      catch(IOException sto)
+		      {
+		          continue continueLoop;
+		      }
+	  }
 
-    }
-    return (int) j;
+	  long endTime = System.currentTimeMillis();
+	  System.out.println("The end time is "+endTime);
+	  roundTripTime = endTime - startTime;
+	  lastPacket();
+  }
+  
+  int binaryToDecimal(String acknowledgementNo) {
+		 double j = 0;
+		 for(int i=0;i<acknowledgementNo.length();i++) {
+			 if(acknowledgementNo.charAt(i) == '1') {
+				 j = j + Math.pow(2,acknowledgementNo.length() - 1 - i);
+			 }
+		 }
+		 return (int)j;
+  }
+  
+  void slide() {
+	  for(int i=startTime;startTime < filesystem.length && acknowledge[i];i++)
+      {
+              startTime++;
+      }
+  }
+  
+  String checksum(byte [] b) {
+		byte sum_1 = 0, sum_2 = 0;
+		for(int i=0;i<b.length;i++) {
+			sum_1 += b[i];
+			if((i+1)<b.length) {
+				sum_2 += b[i+1]; 
+			}
+		}
+		String result1 = Byte.toString(sum_1);
+		String result2 = Byte.toString(sum_2);
+		for(int i=result1.length();i<8;i++)
+			result1="0"+result1;
+	    for(int i=result2.length();i<8;i++)
+	      	result2="0"+result2;
+		return result1 + result2; 
+	 }
+  
+  void lastPacket() {
+	  String lastData = Integer.toBinaryString(selective_repeat_client.startTime + 1);
+	  for(int i = lastData.length(); i<32 ;i++) {
+		  lastData = "0" + lastData;
+	  }
+	  byte endBytes[] = new byte[mss];
+	  String check = checksum(endBytes);
+	  String data = new String(endBytes);
+	  String lastFullPacket = lastData + check + "0000000000000000" + data;
+	  byte[] lastBytes = lastFullPacket.getBytes();
+	  DatagramPacket lastPacket = new DatagramPacket(lastBytes,lastBytes.length,selective_repeat_client.ip,7735);
+	  try {
+		clientSocket.send(lastPacket);
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+  }
+  
+  void send(){
+  while(((selective_repeat_client.endTime - selective_repeat_client.startTime) < windowSize && filesystem.length > selective_repeat_client.endTime))
+  {
+      pack[endTime]=new packet(checksum(filesystem[endTime]),endTime,filesystem[endTime]);
+      acknowledge[endTime]=false;
+      pack[selective_repeat_client.endTime].start();
+      selective_repeat_client.endTime++;
+  }
+  }
+  
+  
 }
-    void window()
-    {
-        for(int i=strt;strt<fs.length&&ack[i];i++)
-        {
-                strt++;
-        }
-    }
+
+
+
+
+
+class packet extends Thread{
+	String checksum;
+	int sequenceNo;
+	byte[] data;
+	packet(String x, int no, byte[] d){
+		this.checksum = x;
+		this.sequenceNo = no;
+		this.data = d;
+	}
+	
+	public void run() {
+		while(this.isAlive()) {
+			DatagramPacket packet;
+			String seq=Integer.toBinaryString(sequenceNo);
+			  for(int i=seq.length();i<32;i++) {
+				  seq = "0" + seq;
+			  }
+			  String packetType = "0101010101010101";
+			  String packetHeader = sequenceNo + checksum + packetType;
+			  byte[] sendData = packetHeader.getBytes();
+			  byte[] packetBytes = new byte[data.length + sendData.length];
+			  for(int i=0;i<packetBytes.length;i++) {
+				  if(i < sendData.length) {
+					  packetBytes[i] = sendData[i];
+				  }
+				  else {
+					  packetBytes[i]=data[i-sendData.length];
+				  }
+			  }
+			  int port = 7735;
+			  packet = new DatagramPacket(packetBytes, packetBytes.length, selective_repeat_client.ip, port);
+			  try
+	            {
+	                selective_repeat_client.clientSocket.send(packet);
+	                System.out.println("Packet sent with seq number"+sequenceNo);
+	                sleep(100);
+	                System.out.println("Timed out, Sequence Number="+sequenceNo);
+	            }
+	            catch(IOException ioe)
+	            {
+	                System.out.println(ioe);
+	            }
+	            catch(InterruptedException ie)
+	            {
+	                System.out.println(ie);
+	            }
+		}
+	}
 }
-class packets extends Thread
-{
-    int seq_no;
-    String checksum;
-    byte [] data;
-    packets(int a, String b,byte [] c)
-    {
-        seq_no=a;
-        checksum=b;
-        data=c;
-    }
-    public void run()
-    {
-        while(this.isAlive())
-        {
-           DatagramPacket p;
-           String sequ=getseq(seq_no);
-           String type="0101010101010101";
-           String header=sequ+checksum+type;
-           byte[] senddata;
-           senddata=header.getBytes();
-           byte[] pack= new byte[data.length+senddata.length];
-           for(int i=0;i<pack.length;i++)
-            {
-                if(i<senddata.length)
-                    pack[i]=senddata[i];
-                else
-                    pack[i]=data[i-senddata.length];
-            }
-            p= new DatagramPacket(pack,pack.length,selective_repeat_client.ip,10000);
-            try
-            {
-                selective_repeat_client.clientsocket.send(p);
-                //System.out.println("Packet sent with seq number"+seq_no);
-                sleep(100);
-                System.out.println("Timed out, Sequence Number="+seq_no);
-            }
-            catch(IOException ioe)
-            {
-                //System.out.println(ioe);
-            }
-            catch(InterruptedException ie)
-            {
-                //System.out.println(ie);
-            }
-        }
-    }
-    String getseq(int n)
-    {
-        String temp=Integer.toBinaryString(n);
-        for(int i=temp.length();i<32;i++)
-            temp="0"+temp;
-        return temp;
-    }
-}
+
+

@@ -27,17 +27,14 @@ public class selective_repeat_client {
 	  this.file = new File(filename);
 	  this.windowSize = winSize;
 	  this.mss = mss;
-	  try {
-		this.ip = InetAddress.getByName(host);
-	   } catch (UnknownHostException e1) {
-			e1.printStackTrace();
-	   }
-	  try {
-		this.clientSocket =  new DatagramSocket();
-		
-	  } catch (SocketException e) {
-		e.printStackTrace();
-	  }	  
+	  try
+      {
+          clientSocket=new DatagramSocket();
+          file=new File(filename);
+          ip=InetAddress.getByName(host);
+      }catch(Exception e) {
+    	  
+      }
   }
   
   public static void main(String[] args) throws IOException {

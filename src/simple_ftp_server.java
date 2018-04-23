@@ -40,9 +40,10 @@ public class simple_ftp_server {
           byte [] db=new byte[packetReceived.getLength()-64];
           System.arraycopy(dataReceived,64, db,0,db.length);
           byte [] received=packetReceived.getData();
-          int sequenceno=ftpServer.binaryToDecimal(received,32);
-          String chck=new String(Arrays.copyOfRange(received, 32, 48));
-          String type=new String(Arrays.copyOfRange(received,48,64));
+          binaryToDecimal btd = new binaryToDecimal();
+          int sequenceno=btd.binaryToDecimal(received);
+          String check=new String(Arrays.copyOfRange(received, 32, 48));
+          String packetType=new String(Arrays.copyOfRange(received,48,64));
           byte [] data=Arrays.copyOfRange(received, 64,received.length);
           random=ran.nextFloat();
           if(random<=p)
@@ -52,17 +53,17 @@ public class simple_ftp_server {
           }
           ftpServer.ipAddress=packetReceived.getAddress();
           ftpServer.portno=packetReceived.getPort();
-          String errorData=ftpServer.checksum(data);
-          if(errorData.equals(chck))
+          checksum chk = new checksum();
+          String errorData=chk.checksum(data);
+          if(errorData.equals(check))
           {
                 if(ftpServer.acknowledge==sequenceno)
                 {
                 	ftpServer.acknowledge++;
-                    if(type.equals("0101010101010101"))
+                    if(packetType.equals("0101010101010101"))
                     {
                         fstream.write(db);
-                        DatagramPacket acknowledgementPackte=ftpServer.createPacket(ftpServer.acknowledge);
-                        ftpServer.serverSocket.send(acknowledgementPackte);
+                        ftpServer.serverSocket.send(ftpServer.createPacket(ftpServer.acknowledge));
                     }
 	                 else {
 	                    	ftpServer.test=false;
@@ -74,27 +75,7 @@ public class simple_ftp_server {
       bstream.close();
       System.out.println(fileName+" contents have been written");
     }
-    
-    
-    String checksum(byte [] byteData)
-    {
-       byte sum_1=0,sum_2=0;
-       for(int i=0;i<byteData.length;i=i+2)
-       {
-           sum_1+=byteData[i];
-           if((i+1)<byteData.length)
-            sum_2+=byteData[i+1];
-       }
-       String result1=Byte.toString(sum_1);
-       String result2=Byte.toString(sum_2);
-       for(int i=result1.length();i<8;i++)
-    	     result1="0"+result1;
-       for(int i=result2.length();i<8;i++)
-    	     result2="0"+result2;
-       return result1+result2;
-    }
-    
-    
+     
     
     DatagramPacket createPacket(int seq)
     {
@@ -109,17 +90,5 @@ public class simple_ftp_server {
         return packetCreation;
     }
 
-   
-    int binaryToDecimal(byte [] st,int n){
-	     String str=new String(Arrays.copyOfRange(st, 0, 32)); 
-	     double j=0;
-	     for(int i=0;i<str.length();i++){
-	        if(str.charAt(i)== '1'){
-	         j=j+ Math.pow(2,str.length()-1-i);
-	     }
-
-	    }
-	    return (int) j;
-    }
 
 }

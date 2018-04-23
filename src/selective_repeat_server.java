@@ -8,9 +8,11 @@ import java.io.*;
 //Server code in which the Go-back-N protocol is implemented
 public class selective_repeat_server {
      static DatagramSocket serverSocket;
-     int portNo, windowSize, start=0;
+     static int portNo;
+	int windowSize;
+	int start=0;
      InetAddress ipAddress;
-     String fileName;
+     static String fileName;
      boolean test = false;
      boolean [] acknowledge;
      byte [][]buffer;
@@ -20,16 +22,18 @@ public class selective_repeat_server {
      public static void main(String[] args) {
     	     
     	      selective_repeat_server ftpServer = new selective_repeat_server();
-    	      System.out.println("The server is waiting for the conneciton");
-    	      int portNo = Integer.parseInt(args[0]);
+    	      ftpServer.portNo = Integer.parseInt(args[0]);
     	      ftpServer.fileName = args[1];
-    	      file = new File(args[1]);
+    	      ftpServer.file =  new File(fileName);
+    	      System.out.println("The server is waiting for the conneciton");
     	      float prob = Float.parseFloat(args[2]);
     	      ftpServer.windowSize = Integer.parseInt(args[3]);
     	      ftpServer.buffer = new byte[ftpServer.windowSize][1024];
     	      ftpServer.acknowledge = new boolean[ftpServer.windowSize];
+    	      System.out.println("The info is setup");
     	      try {
 				serverSocket = new DatagramSocket(portNo);
+				 System.out.println("The socket is created");
 			} catch (SocketException e1) {
 				e1.printStackTrace();
 			}
@@ -38,10 +42,15 @@ public class selective_repeat_server {
  				float random;
  				
 				continueLoop: while(!ftpServer.test) {
+					System.out.println("Inside while1");
 					byte []dataReceived = new  byte[2048];
+					System.out.println("Inside while2");
 					DatagramPacket packetReceived = new DatagramPacket(dataReceived, dataReceived.length);
+					System.out.println("Inside while3");
 					ftpServer.serverSocket.receive(packetReceived);
+					System.out.println("Inside while4");
                      byte[] data = new byte[packetReceived.getLength() - 64];	
+                     System.out.println("Inside while5");
                      System.arraycopy(dataReceived,64,data, 0, data.length);
                      System.out.println("packet length"+packetReceived.getLength());
                      byte[] received = packetReceived.getData();

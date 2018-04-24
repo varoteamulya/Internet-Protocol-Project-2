@@ -18,7 +18,7 @@ public class checksum {
        return result1+result2;
     }
     
-    public static int checksumCalculationString(String data) {
+    public int checksumCalculationString(String data) {
 		String valueString = new String();
 		int value, i, ans = 0;
 		for (i = 0; i < data.length() - 2; i = i + 2) {

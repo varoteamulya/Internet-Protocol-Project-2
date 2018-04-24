@@ -15,6 +15,7 @@ public class simple_ftp_server {
     public static void main(String[] args) throws IOException
     { 
         simple_ftp_server ftpServer=new simple_ftp_server();
+        System.out.println("Starting the server and waiting for the connection");
         int length=0,current=0;
         float random;
       int portno=Integer.parseInt(args[0]);
@@ -80,11 +81,8 @@ public class simple_ftp_server {
     DatagramPacket createPacket(int seq)
     {
         DatagramPacket packetCreation=null;
-        String packet=Integer.toBinaryString(seq);
-        for(int i=packet.length();i<32;i++) {
-        	packet="0"+packet;
-        }
-        packet+="00000000000000001010101010101010";
+        packetCreation pck = new packetCreation();
+        String packet = pck.createPacket(seq);
         byte []send=packet.getBytes();
         packetCreation=new DatagramPacket(send,send.length,ipAddress,portno);
         return packetCreation;

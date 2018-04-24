@@ -17,4 +17,38 @@ public class checksum {
     	     result2="0"+result2;
        return result1+result2;
     }
+    
+    public static int checksumCalculationString(String data) {
+		String valueString = new String();
+		int value, i, ans = 0;
+		for (i = 0; i < data.length() - 2; i = i + 2) {
+			value = (int) (data.charAt(i));
+			valueString = Integer.toHexString(value);
+			value = (int) (data.charAt(i + 1));
+			valueString = valueString + Integer.toHexString(value);
+			value = Integer.parseInt(valueString, 16);
+			ans = ans + value;
+		}
+		if (data.length() % 2 == 0) {
+			value = (int) (data.charAt(i));
+			valueString = Integer.toHexString(value);
+			value = (int) (data.charAt(i + 1));
+			valueString = valueString + Integer.toHexString(value);
+			value = Integer.parseInt(valueString, 16);
+		} else {
+			value = (int) (data.charAt(i));
+			valueString = "00" + Integer.toHexString(value);
+			value = Integer.parseInt(valueString, 16);
+		}
+		ans = ans + value;
+		valueString = Integer.toHexString(ans);
+		if (valueString.length() > 4) {
+			int carry = Integer.parseInt(("" + valueString.charAt(0)), 16);
+			valueString = valueString.substring(1, 5);
+			ans = Integer.parseInt(valueString, 16);
+			ans = ans + carry;
+		}
+		ans = Integer.parseInt("FFFF", 16) - ans;
+		return ans;
+	}
 }

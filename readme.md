@@ -29,3 +29,12 @@ service, the server prints the following line:
 Packet loss, sequence number = X
 • Simple-FTP client: whenever a timeout occurs for a packet with sequence number Y , the client prints the following line:
 Timeout, sequence number = Y
+
+
+The same steps have to be followed for selective repeat as well.
+
+The commands are as follows:
+
+Machine 1 is server. Compile the java code by using th command "javac selective_repeat_server.java". Then execute the server code by using the command "java selective_repeat_server port# file-name p" where port# is the port number to which the server is listening (for this project, this port number is always 7735),file-name is the name of the file where the data will be written, and p is the packet loss probability.
+    
+Machine 2 is client. Compile the java code by using th command "javac selective_repeat_client.java". Then execute the server code by using the command "java selective_repeat_client server-host-name server-port# file-name N MSS" where server-host-name is the host name where the server runs, server-port# is the port number of the server (i.e., 7735), file-name is the name of the file to be transferred, N is the window size, and MSS is the maximum segment size.

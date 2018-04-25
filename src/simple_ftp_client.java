@@ -5,7 +5,7 @@ import java.net.*;
 public class simple_ftp_client {
     String hostname="127.0.0.1";
     int port,n,mss,count=0,buffer=0,seq,acknowledge=0;
-    DatagramSocket clientsocket;
+    static DatagramSocket clientsocket;
     File name;
     byte [][] filesystem;
     InetAddress ip;
@@ -30,6 +30,8 @@ public class simple_ftp_client {
        ftpServer.requiredFormat();
        ftpServer.roundTripTime=ftpServer.execute();
        System.out.println("The average delay of the transfer of the file is "+(ftpServer.roundTripTime-avgdelay));
+       System.out.println("The client is closing the connection");
+       clientsocket.close();
     }
     
     long execute()

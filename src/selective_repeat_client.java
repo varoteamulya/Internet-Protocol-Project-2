@@ -53,14 +53,12 @@ public class selective_repeat_client {
 				DatagramPacket toReceiver = new DatagramPacket(packetToSend, packetToSend.length, serverIP, port);
 				try {
 					clientSocket.send(toReceiver);
-					System.out.println("Packet sent : " + count);
 					marker[m] = 1;
 					count++;
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
-			System.out.println("current index: " + count + " with m: " + m);
 			int timeout = 1000;
 			byte[] receive = new byte[1024];
 			DatagramPacket fromReceiver = new DatagramPacket(receive, receive.length);
@@ -72,7 +70,6 @@ public class selective_repeat_client {
 				while (flag) {
 					clientSocket.receive(fromReceiver);
 					ackNo = ackPacketCreation(fromReceiver.getData());
-					System.out.println("Ack received for : " + ackNo);
 					if (ackNo != -1) {
 						int index = ackNo - count;
 						marker[index] = 2;

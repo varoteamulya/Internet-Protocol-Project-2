@@ -3,7 +3,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 /*
-The server code for Go-Back-N ARQ implementation
+The server code for Selective repeat ARQ implementation
 */
 public class selective_repeat_server {
 	private static packet firstPacket = null;
@@ -50,12 +50,11 @@ public class selective_repeat_server {
 							packet tempPacket = firstPacket;
 							while (tempPacket != null) {
 								 if(tempPacket.index != count)
-									 break;
-								System.out.println("writing: "+tempPacket.index);
-								bstream.write(tempPacket.data.getBytes());
-								firstPacket = firstPacket.link;
-								tempPacket = tempPacket.link;
-								count++;
+									break;
+									bstream.write(tempPacket.data.getBytes());
+									firstPacket = firstPacket.link;
+									tempPacket = tempPacket.link;
+									count++;
 							}
 						}
 					} else if (seqNumber > count) {
@@ -76,7 +75,7 @@ public class selective_repeat_server {
 		return packet.getBytes();
 	}
 
-	// Method to validate hte checksum returned.
+	// Method to validate the checksum returned.
 	public static int validateChecksum(String data, int oldChecksum) {
 		checksum chk = new checksum();
 		int checkans = chk.checksumCalculationString(data);

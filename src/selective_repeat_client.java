@@ -1,7 +1,9 @@
 import java.io.IOException;
 import java.net.*;
 import java.nio.file.*;
-
+/*
+The client code for Selective repeat ARQ implementation
+*/
 public class selective_repeat_client {
 	private static packet firstPacket;
 	public static void main(String[] args) throws IOException {

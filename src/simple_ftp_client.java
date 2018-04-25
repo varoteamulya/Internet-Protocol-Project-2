@@ -1,7 +1,9 @@
 
 import java.io.*;
 import java.net.*;
-
+/*
+The client code for Go-Back-N ARQ implementation
+*/
 public class simple_ftp_client {
     String hostname="127.0.0.1";
     int port,n,mss,count=0,buffer=0,seq,acknowledge=0;
@@ -34,6 +36,7 @@ public class simple_ftp_client {
        clientsocket.close();
     }
     
+    //Sending the data to the server
     long execute()
     {
         long startTime,endTime;                      
@@ -97,6 +100,7 @@ public class simple_ftp_client {
         
     }
     
+    //Make the date in the required format
     void requiredFormat() throws IOException
     {
         int i=(int)name.length()/mss;
@@ -118,7 +122,7 @@ public class simple_ftp_client {
         }
      }
     
-    
+    //Method expected by the description
     DatagramPacket rdt_send(int sequence)
     {
        DatagramPacket packet;
@@ -142,7 +146,7 @@ public class simple_ftp_client {
        return packet;
     }
     
-    
+//Method to form the last packet
     void lastData()
     {
         try

@@ -2,7 +2,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-
+/*
+The server code for Go-Back-N ARQ implementation
+*/
 public class selective_repeat_server {
 	private static packet firstPacket = null;
 	public static void main(String[] args) throws IOException {
@@ -67,14 +69,14 @@ public class selective_repeat_server {
 		file.close();
 	    serverSocket.close();
 	}
-
+   //Method to create the packet
 	public static byte[] createPacket(int seqNo) {
 		packetCreation pck = new packetCreation();
 		String packet = pck.createPacket(seqNo);
 		return packet.getBytes();
 	}
 
-	
+	// Method to validate hte checksum returned.
 	public static int validateChecksum(String data, int oldChecksum) {
 		checksum chk = new checksum();
 		int checkans = chk.checksumCalculationString(data);
@@ -84,6 +86,7 @@ public class selective_repeat_server {
 		return validity;
 	}
 	
+	//Method to align the packets
 	static void allignPackets(int seqNo, String receivedData) {
 		packet intermediatePacket = new packet(seqNo, receivedData);
 		if (firstPacket == null)

@@ -1,5 +1,8 @@
 import java.net.DatagramPacket;
 
+/*
+The class is used for packet creation. That is when the packet is not of required size.
+*/
 public class packetCreation {
 	
    String createPacket(int seq) {

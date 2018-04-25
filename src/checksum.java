@@ -1,5 +1,8 @@
-
+/*
+ The class to calculate the checksum. 
+ */
 public class checksum {
+	// This method is called in simple_ftp_server and simple_ftp_client
     String checksum(byte [] byteData)
     {
        byte sum_1=0,sum_2=0;
@@ -17,7 +20,7 @@ public class checksum {
     	     result2="0"+result2;
        return result1+result2;
     }
-    
+    // This method is called in selective_repeat_server and selective_repeat_client
     public int checksumCalculationString(String data) {
 		String valueString = new String();
 		int value, i, ans = 0;

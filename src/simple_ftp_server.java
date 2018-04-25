@@ -2,7 +2,9 @@
 import java.net.*;
 import java.io.*;
 import java.util.*;
-
+/*
+The server code for Go-Back-N ARQ implementation
+*/
 public class simple_ftp_server {
     DatagramSocket serverSocket;
     static int portno;
@@ -92,7 +94,7 @@ public class simple_ftp_server {
       System.out.println(fileName+" contents have been written");
     }
      
-    
+    //Method to create a packet
     DatagramPacket createPacket(int seq)
     {
         DatagramPacket packetCreation=null;

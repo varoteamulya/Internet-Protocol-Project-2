@@ -1,6 +1,10 @@
 import java.util.Arrays;
-
+/*
+ The class for converting binary value to decimal. There are two methods, one takes the byte stream and the 
+ other takes the string value 
+ */
 public class binaryToDecimal {
+	//method taht takes the byte stream
     int binaryToDecimal(byte [] st){
 	     String str=new String(Arrays.copyOfRange(st, 0, 32)); 
 	     double j=0;
@@ -12,7 +16,7 @@ public class binaryToDecimal {
 	    }
 	    return (int) j;
    }
-    
+    //Methods that takes the string
     int binaryToDecimalByString(String sequenceNo)
     {
         double j=0;

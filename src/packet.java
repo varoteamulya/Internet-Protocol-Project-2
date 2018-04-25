@@ -1,3 +1,6 @@
+/*
+ The class is a template for a packet.
+ */
 public class packet {
 	int index;
 	packet link = null;

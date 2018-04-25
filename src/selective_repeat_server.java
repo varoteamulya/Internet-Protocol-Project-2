@@ -6,7 +6,6 @@ import java.util.*;
 public class selective_repeat_server {
 	private static packet firstPacket = null;
 	public static void main(String[] args) throws IOException {
-		System.out.println("This is Selective Repeat server");
 		int port = Integer.parseInt(args[0]);
 		String filename = args[1];
 		double pos = Double.parseDouble(args[2]);
